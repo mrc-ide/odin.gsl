@@ -18,12 +18,12 @@ typedef struct sir_internal {
 } sir_internal;
 
 sir_internal* sir_get_internal(SEXP internal_p, int closed_error);
-static void sir_finalise(SEXP internal_p);
 SEXP sir_create(SEXP user);
 
 SEXP sir_initial_conditions(SEXP internal_p, SEXP step_ptr);
-void sir_rhs(sir_internal* internal, size_t step, double * state, double * state_next, double * output);
-void sir_rhs_dde(size_t n_eq, size_t step, double * state, double * state_next, size_t n_out, double * output, void * internal);
+SEXP sir_set_user(SEXP internal_p, SEXP user);
+void sir_rhs(sir_internal* internal, size_t step, const double * state, double * state_next, double * output);
+void sir_rhs_dde(size_t n_eq, size_t step, const double * state, double * state_next, size_t n_out, double * output, const void * internal);
 
 // Functions for the ffi
 double user_get_scalar_double(SEXP user, const char *name,

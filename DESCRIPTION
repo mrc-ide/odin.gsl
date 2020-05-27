@@ -14,4 +14,6 @@ Language: en-GB
 Imports:
     odin
 Suggests:
+    dde,
     testthat
+RoxygenNote: 7.0.2

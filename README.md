@@ -6,6 +6,18 @@
 [![codecov.io](https://codecov.io/github/mrc-ide/odin.gsl/coverage.svg?branch=master)](https://codecov.io/github/mrc-ide/odin.gsl?branch=master)
 <!-- badges: end -->
 
+## Process
+
+The model was generated using
+
+```
+odin::odin("inst/examples/sir.R", workdir = "src")
+```
+
+which generates `src/sir.c` - from that file we keep:
+
+just the rhs
+
 ## License
 
 MIT © Imperial College of Science, Technology and Medicine

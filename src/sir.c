@@ -34,6 +34,20 @@ SEXP sir_create(SEXP user) {
   return ptr;
 }
 
+SEXP sir_set_user(SEXP internal_p, SEXP user) {
+  sir_internal *internal = sir_get_internal(internal_p, 1);
+  internal->beta = user_get_scalar_double(user, "beta", internal->beta, NA_REAL, NA_REAL);
+  internal->gamma = user_get_scalar_double(user, "gamma", internal->gamma, NA_REAL, NA_REAL);
+  internal->I0 = user_get_scalar_double(user, "I0", internal->I0, NA_REAL, NA_REAL);
+  internal->S0 = user_get_scalar_double(user, "S0", internal->S0, NA_REAL, NA_REAL);
+  internal->steps_per_day = user_get_scalar_double(user, "steps_per_day", internal->steps_per_day, NA_REAL, NA_REAL);
+  internal->dt = 1 / (double) internal->steps_per_day;
+  internal->initial_I = internal->I0;
+  internal->initial_S = internal->S0;
+  internal->p_IR = 1 - exp(-(internal->gamma));
+  return R_NilValue;
+}
+
 SEXP sir_initial_conditions(SEXP internal_p, SEXP step_ptr) {
   sir_internal *internal = sir_get_internal(internal_p, 1);
   SEXP r_state = PROTECT(allocVector(REALSXP, 3));
@@ -45,7 +59,7 @@ SEXP sir_initial_conditions(SEXP internal_p, SEXP step_ptr) {
   return r_state;
 }
 
-void sir_rhs(sir_internal* internal, size_t step, double * state, double * state_next, double * output) {
+void sir_rhs(sir_internal* internal, size_t step, const double * state, double * state_next, double * output) {
   double S = state[0];
   double I = state[1];
   double R = state[2];
@@ -60,7 +74,7 @@ void sir_rhs(sir_internal* internal, size_t step, double * state, double * state
   output[0] = n_SI;
 }
 
-void sir_rhs_dde(size_t n_eq, size_t step, double * state, double * state_next, size_t n_out, double * output, void * internal) {
+void sir_rhs_dde(size_t n_eq, size_t step, const double * state, double * state_next, size_t n_out, double * output, const void * internal) {
   sir_rhs((sir_internal*)internal, step, state, state_next, output);
 }
 

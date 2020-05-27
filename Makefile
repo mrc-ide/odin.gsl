@@ -37,6 +37,9 @@ pkgdown:
 website: pkgdown
 	./scripts/update_web.sh
 
+clean:
+	rm -f src/*.o src/*.dll src/*.so
+
 vignettes: vignettes/traduire.Rmd
 	${RSCRIPT} -e 'tools::buildVignettes(dir = ".")'
 	mkdir -p inst/doc

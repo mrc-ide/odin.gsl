@@ -1,0 +1,2 @@
+##' @useDynLib odin.gsl
+NULL
