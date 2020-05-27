@@ -1,0 +1,17 @@
+Package: odin.gsl
+Title: Odin in parallel using GSL
+Version: 0.0.1
+Authors@R: c(person("Rich", "FitzJohn", role = c("aut", "cre"),
+                    email = "rich.fitzjohn@gmail.com"),
+             person("John", "Lees", role = "aut"),
+             person("Imperial College of Science, Technology and Medicine",
+                    role = "cph"))
+Description: Experiments for getting odin working with GSL for parallel replicates in order to do efficient particle filtering.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Language: en-GB
+Imports:
+    odin
+Suggests:
+    testthat
