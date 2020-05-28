@@ -28,7 +28,7 @@ SEXP r_dde_example(SEXP r_n_replicates, SEXP r_steps, SEXP r_y_initial,
   double *y = REAL(r_y);
   double *out = REAL(r_out);
 
-  size_t n_threads = INTEGER(r_n_threads);
+  size_t n_threads = INTEGER(r_n_threads)[0];
   omp_set_num_threads(n_threads);
   #pragma omp parallel
   {

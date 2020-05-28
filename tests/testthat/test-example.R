@@ -13,11 +13,11 @@ test_that("confirm that dde example confirms to package", {
   replicate <- 20
 
   ## Run with odin/dde
-  set.seed(1)
+  seed <- 1
+  set.seed(seed)
   cmp <- mod$run(steps, y, replicate = replicate)
 
-  set.seed(1)
-  res <- dde_example(replicate, steps, y)
+  res <- dde_example(replicate, steps, y, threads = 4, user=list(seed=seed))
   out <- attr(res, "output")
   attr(res, "output") <- NULL
 
