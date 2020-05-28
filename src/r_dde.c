@@ -3,7 +3,7 @@
 #include <omp.h>
 
 SEXP r_dde_example(SEXP r_n_replicates, SEXP r_steps, SEXP r_y_initial,
-                   SEXP user) {
+                   SEXP r_n_threads, SEXP user) {
   
   size_t n = 3;     // number of equations
   size_t n_out = 2; // number of "output" variables
@@ -28,6 +28,8 @@ SEXP r_dde_example(SEXP r_n_replicates, SEXP r_steps, SEXP r_y_initial,
   double *y = REAL(r_y);
   double *out = REAL(r_out);
 
+  size_t n_threads = INTEGER(r_n_threads);
+  omp_set_num_threads(n_threads);
   #pragma omp parallel
   {
     SEXP sir = PROTECT(sir_create(user));
