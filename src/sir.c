@@ -15,6 +15,7 @@ sir_internal* sir_get_internal(SEXP internal_p, int closed_error) {
 void sir_finalise(SEXP internal_p) {
   sir_internal *internal = sir_get_internal(internal_p, 0);
   if (internal_p) {
+    gsl_rng_free(internal->random_generator);
     Free(internal);
     R_ClearExternalPtr(internal_p);
   }
@@ -28,6 +29,8 @@ SEXP sir_create(SEXP user) {
   internal->I0 = 10;
   internal->S0 = 1000;
   internal->steps_per_day = 4;
+  internal->random_generator = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(internal->random_generator, user_get_scalar_int(user, "seed", 1, INT_MIN, INT_MAX));
   SEXP ptr = PROTECT(R_MakeExternalPtr(internal, R_NilValue, R_NilValue));
   R_RegisterCFinalizer(ptr, sir_finalise);
   UNPROTECT(1);
@@ -64,9 +67,9 @@ void sir_rhs(sir_internal* internal, size_t step, const double * state, double *
   double I = state[1];
   double R = state[2];
   double N = S + I + R;
-  double n_IR = Rf_rbinom(round(I), internal->p_IR * internal->dt);
+  double n_IR = (double)gsl_ran_binomial(internal->random_generator, internal->p_IR * internal->dt, round(I));
   double p_SI = 1 - exp(-(internal->beta) * I / (double) N);
-  double n_SI = Rf_rbinom(round(S), p_SI * internal->dt);
+  double n_SI = (double)gsl_ran_binomial(internal->random_generator, p_SI * internal->dt, round(S));
   state_next[2] = R + n_IR;
   state_next[1] = I + n_SI - n_IR;
   state_next[0] = S - n_SI;

@@ -2,7 +2,10 @@
 #include <Rmath.h>
 #include <Rinternals.h>
 #include <stdbool.h>
+#include <limits.h>
 #include <R_ext/Rdynload.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 typedef struct sir_internal {
   double beta;
@@ -15,6 +18,7 @@ typedef struct sir_internal {
   double p_IR;
   double S0;
   double steps_per_day;
+  gsl_rng * random_generator;
 } sir_internal;
 
 sir_internal* sir_get_internal(SEXP internal_p, int closed_error);

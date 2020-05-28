@@ -37,13 +37,13 @@ SEXP r_dde_example(SEXP r_n_replicates, SEXP r_steps, SEXP r_y_initial,
   // technique to prevent this.
   difeq_data* obj = difeq_data_alloc(target, n, n_out, data);
 
-  GetRNGstate();
+  //GetRNGstate();
   for (size_t i = 0; i < n_replicates; ++i) {
     difeq_run(obj, y_initial, steps, n_steps, y, out);
     y += n * nt;
     out += n_out * nt;
   }
-  PutRNGstate();
+  //PutRNGstate();
 
   difeq_data_free(obj);
 
