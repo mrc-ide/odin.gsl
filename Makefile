@@ -30,6 +30,12 @@ README.md: README.Rmd
 	sed -i.bak 's/[[:space:]]*$$//' README.md
 	rm -f $@.bak
 
+test_leaks: .valgrind_ignore
+	R -d 'valgrind --leak-check=full --suppressions=.valgrind_ignore' -e 'devtools::test()'
+.valgrind_ignore:
+	R -d 'valgrind --leak-check=full --gen-suppressions=all --log-file=$@' -e 'library(testthat)'
+	sed -i.bak '/^=/ d' $@
+	rm -f $@.bak
 
 pkgdown:
 	${RSCRIPT} -e "library(methods); pkgdown::build_site()"
@@ -45,4 +51,4 @@ vignettes: vignettes/traduire.Rmd
 	mkdir -p inst/doc
 	cp vignettes/*.html vignettes/*.Rmd inst/doc
 
-.PHONY: all test document install vignettes
+.PHONY: all test document install vignettes test_leaks
