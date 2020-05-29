@@ -3,6 +3,31 @@
 
 void fill_na(double *x, size_t n);
 
+rng_array rng_init(const size_t n_generators,
+                   const gsl_rng_type* gen_type,
+                   unsigned long* seeds) {
+  rng_array rng = {NULL, seeds, gen_type, n_generators};
+  rng.generators = calloc(n_generators, sizeof(gsl_rng*));
+  if (rng.generators) {
+    for (size_t gen_idx = 0; gen_idx < n_generators; gen_idx++) {
+      *(rng.generators + gen_idx) = gsl_rng_alloc(gen_type);
+      gsl_rng_set(*(rng.generators + gen_idx), *(rng.seeds + gen_idx));
+    }
+  } else {
+    printf("Could not allocate memory for RNGs\n");
+    abort();
+  }
+  return(rng);
+}
+
+void rng_free(rng_array* rngs) {
+  for (size_t gen_idx = 0; gen_idx < rngs->n_generators; gen_idx++) {
+    gsl_rng_free(*(rngs->generators + gen_idx));
+  }
+  free(rngs->generators);
+  free(rngs->seeds);
+}
+
 difeq_data* difeq_data_alloc(difeq_target* target,
                              size_t n, size_t n_out, const void *data) {
   difeq_data *ret = (difeq_data*) R_Calloc(1, difeq_data);
@@ -60,7 +85,7 @@ void difeq_data_reset(difeq_data *obj, const double *y,
 
 void difeq_run(difeq_data *obj, const double *y,
                const size_t *steps, size_t n_steps,
-               double *y_out, double *out) {
+               double *y_out, double *out, gsl_rng *rng) {
   difeq_data_reset(obj, y, steps, n_steps);
 
   double *y_next = NULL, *out_next = NULL;
@@ -81,7 +106,7 @@ void difeq_run(difeq_data *obj, const double *y,
   double *ytmp = has_output ? (double*) R_alloc(obj->n, sizeof(double)) : NULL;
 
   while (true) {
-    obj->target(obj->n, obj->step, y, y_next, obj->n_out, out_next, obj->data);
+    obj->target(obj->n, obj->step, y, y_next, obj->n_out, out_next, obj->data, rng);
     obj->step++;
     y = y_next;
 
@@ -107,7 +132,7 @@ void difeq_run(difeq_data *obj, const double *y,
 
   if (has_output && store_next_output) {
     obj->target(obj->n, obj->step, y, ytmp, obj->n_out, write_out,
-                obj->data);
+                obj->data, rng);
   }
 }
 

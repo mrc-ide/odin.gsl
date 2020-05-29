@@ -15,7 +15,6 @@ sir_internal* sir_get_internal(SEXP internal_p, int closed_error) {
 void sir_finalise(SEXP internal_p) {
   sir_internal *internal = sir_get_internal(internal_p, 0);
   if (internal_p) {
-    gsl_rng_free(internal->random_generator);
     Free(internal);
     R_ClearExternalPtr(internal_p);
   }
@@ -29,8 +28,6 @@ SEXP sir_create(SEXP user) {
   internal->I0 = 10;
   internal->S0 = 1000;
   internal->steps_per_day = 4;
-  internal->random_generator = gsl_rng_alloc(gsl_rng_mt19937);
-  gsl_rng_set(internal->random_generator, user_get_scalar_int(user, "seed", 1, INT_MIN, INT_MAX));
   SEXP ptr = PROTECT(R_MakeExternalPtr(internal, R_NilValue, R_NilValue));
   R_RegisterCFinalizer(ptr, sir_finalise);
   UNPROTECT(1);
@@ -62,14 +59,14 @@ SEXP sir_initial_conditions(SEXP internal_p, SEXP step_ptr) {
   return r_state;
 }
 
-void sir_rhs(sir_internal* internal, size_t step, const double * state, double * state_next, double * output) {
+void sir_rhs(sir_internal* internal, size_t step, const double * state, double * state_next, double * output, gsl_rng* rng) {
   double S = state[0];
   double I = state[1];
   double R = state[2];
   double N = S + I + R;
-  double n_IR = (double)gsl_ran_binomial(internal->random_generator, internal->p_IR * internal->dt, round(I));
+  double n_IR = (double)gsl_ran_binomial(rng, internal->p_IR * internal->dt, round(I));
   double p_SI = 1 - exp(-(internal->beta) * I / (double) N);
-  double n_SI = (double)gsl_ran_binomial(internal->random_generator, p_SI * internal->dt, round(S));
+  double n_SI = (double)gsl_ran_binomial(rng, p_SI * internal->dt, round(S));
   state_next[2] = R + n_IR;
   state_next[1] = I + n_SI - n_IR;
   state_next[0] = S - n_SI;
@@ -77,8 +74,8 @@ void sir_rhs(sir_internal* internal, size_t step, const double * state, double *
   output[0] = n_SI;
 }
 
-void sir_rhs_dde(size_t n_eq, size_t step, const double * state, double * state_next, size_t n_out, double * output, const void * internal) {
-  sir_rhs((sir_internal*)internal, step, state, state_next, output);
+void sir_rhs_dde(size_t n_eq, size_t step, const double * state, double * state_next, size_t n_out, double * output, const void * internal, gsl_rng* rng) {
+  sir_rhs((sir_internal*)internal, step, state, state_next, output, rng);
 }
 
 // Functions used to help with the FFI

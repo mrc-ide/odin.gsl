@@ -28,35 +28,47 @@ SEXP r_dde_example(SEXP r_n_replicates, SEXP r_steps, SEXP r_y_initial,
   double *y = REAL(r_y);
   double *out = REAL(r_out);
 
+  SEXP sir = PROTECT(sir_create(user));
+  sir_set_user(sir, user);
+
+  sir_internal* data = sir_get_internal(sir, true);
+  difeq_target* target = &sir_rhs_dde;
+
+  // NOTE: this will leak on R error as the destructor will not be
+  // called! That's fine for now, but usually I use a smart pointer
+  // technique to prevent this.
+  difeq_data* obj = difeq_data_alloc(target, n, n_out, data);
+
+  // Set threads
   size_t n_threads = INTEGER(r_n_threads)[0];
   omp_set_num_threads(n_threads);
-  #pragma omp parallel
-  {
-    SEXP sir = PROTECT(sir_create(user));
-    sir_set_user(sir, user);
-
-    sir_internal* data = sir_get_internal(sir, true);
-    difeq_target* target = &sir_rhs_dde;
-
-    // NOTE: this will leak on R error as the destructor will not be
-    // called! That's fine for now, but usually I use a smart pointer
-    // technique to prevent this.
-    difeq_data* obj = difeq_data_alloc(target, n, n_out, data);
-
-    //GetRNGstate();
-    size_t i;
-    #pragma omp for private(i) schedule(static)
-    for (i = 0; i < n_replicates; ++i) {
-      difeq_run(obj, y_initial, steps, n_steps, y, out);
-      y += n * nt;
-      out += n_out * nt;
+  
+  // Set up rng, one generator per thread
+  unsigned long* seeds;
+  seeds = calloc(n_threads, sizeof(int));
+  if (seeds) {
+    for (unsigned long thread_idx = 0; thread_idx < n_threads; thread_idx++) {
+      *(seeds + thread_idx) = thread_idx;
     }
-    //PutRNGstate();
-
-    difeq_data_free(obj);
-
-    UNPROTECT(3);
+  } else {
+    printf("Couldn't allocate memory for seeds\n");
+    abort();
   }
+
+  rng_array rngs = rng_init(n_threads, gsl_rng_taus2, seeds);
+  
+  size_t i;
+  #pragma omp parallel for private(i) schedule(static)
+  for (i = 0; i < n_replicates; ++i) {
+    difeq_run(obj, y_initial, steps, n_steps, y, out, *(rngs.generators + i));
+    y += n * nt;
+    out += n_out * nt;
+  }
+
+  difeq_data_free(obj);
+  rng_free(&rngs);
+
+  UNPROTECT(3);
 
   return r_y;
 }

@@ -18,7 +18,6 @@ typedef struct sir_internal {
   double p_IR;
   double S0;
   double steps_per_day;
-  gsl_rng * random_generator;
 } sir_internal;
 
 sir_internal* sir_get_internal(SEXP internal_p, int closed_error);
@@ -26,8 +25,8 @@ SEXP sir_create(SEXP user);
 
 SEXP sir_initial_conditions(SEXP internal_p, SEXP step_ptr);
 SEXP sir_set_user(SEXP internal_p, SEXP user);
-void sir_rhs(sir_internal* internal, size_t step, const double * state, double * state_next, double * output);
-void sir_rhs_dde(size_t n_eq, size_t step, const double * state, double * state_next, size_t n_out, double * output, const void * internal);
+void sir_rhs(sir_internal* internal, size_t step, const double * state, double * state_next, double * output, gsl_rng * rng);
+void sir_rhs_dde(size_t n_eq, size_t step, const double * state, double * state_next, size_t n_out, double * output, const void * internal, gsl_rng * rng);
 
 // Functions for the ffi
 double user_get_scalar_double(SEXP user, const char *name,
