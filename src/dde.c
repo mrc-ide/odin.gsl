@@ -5,7 +5,7 @@ void fill_na(double *x, size_t n);
 
 rng_array rng_init(const size_t n_generators,
                    const gsl_rng_type* gen_type,
-                   unsigned long* seeds) {
+                   const unsigned long* seeds) {
   rng_array rng = {NULL, seeds, gen_type, n_generators};
   rng.generators = calloc(n_generators, sizeof(gsl_rng*));
   if (rng.generators) {
@@ -25,7 +25,6 @@ void rng_free(rng_array* rngs) {
     gsl_rng_free(*(rngs->generators + gen_idx));
   }
   free(rngs->generators);
-  free(rngs->seeds);
 }
 
 difeq_data* difeq_data_alloc(difeq_target* target,

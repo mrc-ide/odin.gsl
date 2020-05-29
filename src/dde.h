@@ -40,14 +40,14 @@ typedef struct {
 
 typedef struct {
   gsl_rng** generators;
-  unsigned long* seeds;
+  const unsigned long* seeds;
   const gsl_rng_type* gen_type;
   const size_t n_generators;
 } rng_array;
 
 rng_array rng_init(const size_t n_generators,
                    const gsl_rng_type* gen_type,
-                   unsigned long* seeds);
+                   const unsigned long* seeds);
 void rng_free(rng_array* rngs);
 
 difeq_data* difeq_data_alloc(difeq_target * target,

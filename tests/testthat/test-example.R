@@ -17,7 +17,7 @@ test_that("confirm that dde example confirms to package", {
   set.seed(seed)
   cmp <- mod$run(steps, y, replicate = replicate)
 
-  res <- dde_example(replicate, steps, y, threads = 4, user=list(seed=seed))
+  res <- dde_example(replicate, steps, y, threads = 4)
   out <- attr(res, "output")
   attr(res, "output") <- NULL
 
