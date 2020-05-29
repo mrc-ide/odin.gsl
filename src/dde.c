@@ -7,7 +7,7 @@ rng_array rng_init(const size_t n_generators,
                    const gsl_rng_type* gen_type,
                    const unsigned long* seeds) {
   rng_array rng = {NULL, seeds, gen_type, n_generators};
-  rng.generators = calloc(n_generators, sizeof(gsl_rng*));
+  rng.generators = (gsl_rng**) calloc(n_generators, sizeof(gsl_rng*));
   if (rng.generators) {
     for (size_t gen_idx = 0; gen_idx < n_generators; gen_idx++) {
       *(rng.generators + gen_idx) = gsl_rng_alloc(gen_type);
